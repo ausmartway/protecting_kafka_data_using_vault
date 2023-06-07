@@ -44,6 +44,7 @@ if __name__ == '__main__':
     # disable TLS verification
     urllib3.disable_warnings()
     print("kafka topic set to {topic}".format(topic=topic))
+
     # create a client object and authenticate to the Vault server using a token
     client = hvac.Client(url=os.environ['VAULT_ADDR'], token=os.environ['VAULT_TOKEN'], verify=False)
 
@@ -60,10 +61,11 @@ if __name__ == '__main__':
                 print("ERROR: %s".format(msg.error()))
             else:
 
-                # Extract the (optional) key and value, and print.
+                # Extract the key and value, and print.
                 encrypted_payload= json.loads(msg.value().decode('utf-8'))
                 # print(msg.value().decode('utf-8'))
 
+                # decrypt the credit card number using transform secrets engine, and the address using transit secrets engine
                 credit_card_decode_response = client.secrets.transform.decode(
                     role_name="payments",
                     value=encrypted_payload["credit_card"],
@@ -76,6 +78,7 @@ if __name__ == '__main__':
                     ciphertext=address,
                 )
                 
+                # reconstruct the decrypted payload and print
                 decrypted_payload = {
                     "Name": encrypted_payload["Name"],
                     "Address": base64.b64decode(str(address_decrypt_data_response['data']['plaintext'])).decode("utf-8"),

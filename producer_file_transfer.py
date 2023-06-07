@@ -53,7 +53,7 @@ if __name__ == '__main__':
             #encode file contents into base64
             file_contents_base64= base64.b64encode(file_contents)
 
-            # get datakey from transit
+            # get a Data Encryption Key from transit secrets engine
             gen_key_response = client.secrets.transit.generate_data_key(
             name='transit',
             key_type='plaintext',
@@ -63,13 +63,13 @@ if __name__ == '__main__':
             print('Generated data key ciphertext is: {cipher}'.format(cipher=ciphertext))
             # print('Generated data key plaintext is: {plaintext}'.format(plaintext=plaintext))
 
-            #get nonce from transit
+            #get nonce from transit secrets engine
             gen_bytes_response = client.secrets.transit.generate_random_bytes(n_bytes=32)
             nonce = gen_bytes_response['data']['random_bytes']
 
             print('Generated nonce for encryption operation is: {nonce}'.format(nonce=nonce))
 
-            #initiate a new AES encryptor with key and nonce from Vault, encrypt file contents.
+            #initiate a new AES encryptor with DEK and nonce from Vault, encrypt file contents.
             encryptor = AES.new(base64.b64decode(plaintext), AES.MODE_GCM,base64.b64decode(nonce))
             encrypted_contents,tag = encryptor.encrypt_and_digest(file_contents_base64)
 
@@ -80,7 +80,7 @@ if __name__ == '__main__':
                 'nonce': nonce,
             })
 
-            # Pack the ciphertext of the key and filename into HTTP headers. As the key has been encrypted by Vault, it can't be used without decryption.
+            # Pack the ciphertext of the DEK and filename into HTTP headers. As the DEK has been encrypted by Vault, it can't be used without decryption.
             headers = [
                 ('X-encryptionkey', ciphertext),
                 ('X-filename',filename),
@@ -88,43 +88,6 @@ if __name__ == '__main__':
 
             #Produce a kafka msg to the topic
             producer.produce(topic, value=data.encode('utf-8'), headers=headers )
-
-
-    # filename="82E91B88-92DE-49F7-B5AC-4406354FCA7A_1_102_o.jpeg"
-
-    # with open(filename, "rb") as f:
-    #     file_contents=f.read()
-    
-    # # print('file contents: {file_contents}.'.format(file_contents=file_contents))
-
-    # #encode file contents into base64
-    # file_contents_base64= base64.b64encode(file_contents)
-
-    # # print('file contents in base 64: {file_contents_base64}.'.format(file_contents_base64=file_contents_base64))
-
-    # #initiate a new AES encryptor with key and nonce from Vault, encrypt file contents.
-    # encryptor = AES.new(base64.b64decode(plaintext), AES.MODE_GCM,base64.b64decode(nonce))
-    # encrypted_contents,tag = encryptor.encrypt_and_digest(file_contents_base64)
-
-    # # Pack the encrypted data and the tag into a JSON object
-    # data = json.dumps({
-    #     'ciphertext': encrypted_contents.hex(),
-    #     'tag': tag.hex(),
-    #     'nonce': nonce,
-    # })
-
-    # # Pack the ciphertext of the key and filename into HTTP headers. As the key has been encrypted by Vault, it can't be used without decryption.
-    # headers = [
-    #     ('X-encryptionkey', ciphertext),
-    #     ('X-filename',filename),
-    # ]
-    # # debug code
-    # # decryptor  = AES.new(base64.b64decode(plaintext), AES.MODE_GCM,base64.b64decode(nonce))
-    # # decrypted_contents = decryptor.decrypt(encrypted_contents)
-    # # print('decrypted file contents in base 64: {decrypted_contents}.'.format(decrypted_contents=decrypted_contents))
-    # # print('decrypted file contents in original: {decrypted_contents}.'.format(decrypted_contents=base64.b64decode(decrypted_contents)))
-
-    # producer.produce(topic, value=data.encode('utf-8'), headers=headers )
 
     # Block until the messages are sent.
     producer.poll(10000)
