@@ -90,6 +90,11 @@ In confluent cloud this is under > Environments > Developement > BASIC_DEMO_KAFK
 
 * setup VAULT_ADDR and VAULT_TOKEN
 
+```bash
+export VAULT_ADDR="YOUR VAULT ADDRESS"
+export VAULT_TOKEN="<YOUR VAULT TOKEN>"
+```
+
 * Run encryptor.py in a terminal `python3 encryptor.py` to consume messages from 'purchases' topic, encrypt, then send to 'purchases_encrypted' topic. Encrypted messages should apprear in the browser. This is to show that Vault can be used to do per-field encryption.
 
 * Login to Vault, and rotate the transit encryption key.
