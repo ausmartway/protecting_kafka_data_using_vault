@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os
 from argparse import ArgumentParser, FileType
 from configparser import ConfigParser
 from confluent_kafka import Consumer, OFFSET_BEGINNING
@@ -44,7 +45,7 @@ if __name__ == '__main__':
     urllib3.disable_warnings()
     print("kafka topic set to {topic}".format(topic=topic))
     # create a client object and authenticate to the Vault server using a token
-    client = hvac.Client(url='https://nginx', token='s.sxns9tOHTlbY9E0ECc5beMhY', verify=False)
+    client = hvac.Client(url='os.environ['VAULT_ADDR']', token=os.environ['VAULT_TOKEN'], verify=False)
 
     # Poll for new messages from Kafka and print them.
     try:
