@@ -58,7 +58,7 @@ if __name__ == '__main__':
     # disable TLS verification
     urllib3.disable_warnings()
 
-    # create a client object and authenticate to the Vault server using a token
+    # create a Vault client object and authenticate to the Vault server using a token
     client = hvac.Client(url=os.environ['VAULT_ADDR'], token=os.environ['VAULT_TOKEN'], verify=False)
 
 
@@ -78,11 +78,13 @@ if __name__ == '__main__':
                 original_payload= json.loads(msg.value().decode('utf-8'))
                 # print(msg.value().decode('utf-8'))
 
+                # get credit_card field from original payload and encrypt it with transform secrets engine, using the payments role and creditcard transformation
                 credit_card_encode_response = client.secrets.transform.encode(
                     role_name="payments",
                     value=original_payload["credit_card"],
                     transformation="creditcard")
                 
+                # get address field from original payload and encrypt it with transit secrets engine, using the transit key
                 address = original_payload["Address"]
                 address_bytes = address.encode('ascii')
                 address_base64=base64.b64encode(address_bytes)
@@ -92,6 +94,7 @@ if __name__ == '__main__':
                     plaintext=str(address_base64, "utf-8"),
                 )
                 
+                # create a new payload with the encrypted fields
                 encrypted_payload = {
                     "Name": original_payload["Name"],
                     "Address": address_encrypt_data_response['data']['ciphertext'],

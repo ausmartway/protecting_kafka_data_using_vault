@@ -66,29 +66,19 @@ if __name__ == '__main__':
                 # get encrypted payload and corresponding headers from the topic,
                 encrypted_payload= json.loads(msg.value().decode('utf-8'))
                 headers=dict(msg.headers())
+
                 print('Data Encryption Key from header: {encryptionkey}'.format(encryptionkey = headers['X-encryptionkey'].decode("utf-8")))
-                # decrypt the encryption key using vault transit
+                # decrypt the Data Encryption Key using vault transit secrets engine
                 encryptionkey=client.secrets.transit.decrypt_data(name='transit',ciphertext=headers['X-encryptionkey'].decode("utf-8"))['data']['plaintext']
                 print('Data Encryption Key after decryption from Vault: {encryptionkey}'.format(encryptionkey=encryptionkey))
                 
-                # #file contents
-                # print(encrypted_payload['ciphertext'])
-
                 #Initiate a new AES decryptor using the data encryption key from header and nonce from payload 
                 cipher = AES.new(base64.b64decode(encryptionkey), AES.MODE_GCM,base64.b64decode(encrypted_payload['nonce']))
-                
-                # Debug code
-                # print(base64.b64decode(encrypted_payload['ciphertext']))
-                # print(base64.b64decode(encrypted_payload['tag']))
-                
+                               
                 # Decrypt the ciphertext and verify the tag
                 plaintext = cipher.decrypt_and_verify(bytes.fromhex(encrypted_payload['ciphertext']), bytes.fromhex(encrypted_payload['tag']))
                 
-                # Debug code
-                # print('decrypted contents in base64: {plaintext}'.format(plaintext=plaintext))
-                # print('decrypted contents in plaintext: {plaintext}'.format(plaintext=base64.b64decode(plaintext)))      
-
-                #write contents into file, previx filename with 'receved-':
+                #write contents into file, prefix filename with 'receved-':
                 with open(dest_dir+'received-'+headers['X-filename'].decode("utf-8"), 'wb') as f:
                 # Write the bytes data to the file
                     f.write(base64.b64decode(plaintext))
