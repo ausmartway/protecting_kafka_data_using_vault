@@ -1,5 +1,5 @@
 provider "vault" {
-  address = var.vault_address
+  # address = var.vault_address
   skip_tls_verify = true
 }
 
@@ -38,6 +38,7 @@ resource "vault_transform_transformation" "creditcard" {
   type          = "fpe"
   template      = "ccn"
   tweak_source  = "internal"
+  deletion_allowed = true
   allowed_roles = ["payments"]
 }
 
@@ -52,4 +53,5 @@ resource "vault_mount" "transit" {
 resource "vault_transit_secret_backend_key" "key" {
   backend = vault_mount.transit.path
   name    = "my_key"
+  deletion_allowed = true
 }

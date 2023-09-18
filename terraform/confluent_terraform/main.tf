@@ -16,9 +16,9 @@ provider "confluent" {
 resource "confluent_environment" "development" {
   display_name = "Development"
 
-  lifecycle {
-    prevent_destroy = true
-  }
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 }
 
 resource "confluent_kafka_cluster" "demo" {
@@ -32,9 +32,9 @@ resource "confluent_kafka_cluster" "demo" {
     id = confluent_environment.development.id
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 }
 
 resource "confluent_service_account" "app-manager" {
@@ -87,9 +87,9 @@ resource "confluent_kafka_topic" "purchases" {
     secret = confluent_api_key.app-manager-kafka-api-key.secret
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 }
 
 resource "confluent_kafka_topic" "purchases_encrypted" {
@@ -105,9 +105,9 @@ resource "confluent_kafka_topic" "purchases_encrypted" {
     secret = confluent_api_key.app-manager-kafka-api-key.secret
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 }
 
 resource "confluent_kafka_topic" "purchases_large_encrypted" {
@@ -129,7 +129,7 @@ resource "confluent_kafka_topic" "purchases_large_encrypted" {
     secret = confluent_api_key.app-manager-kafka-api-key.secret
   }
 
-  lifecycle {
-    prevent_destroy = true
-  }
+  # lifecycle {
+  #   prevent_destroy = true
+  # }
 }

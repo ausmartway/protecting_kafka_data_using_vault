@@ -1,4 +1,4 @@
-variable "vault_address" {
-  type        = string
-  description = "vault address"
-}
+# variable "vault_address" {
+#   type        = string
+#   description = "vault address"
+# }
