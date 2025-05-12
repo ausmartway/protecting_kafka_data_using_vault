@@ -6,6 +6,7 @@ import json
 from random import choice
 from argparse import ArgumentParser, FileType
 from configparser import ConfigParser
+import time
 from confluent_kafka import Producer
 
 if __name__ == '__main__':
@@ -46,7 +47,7 @@ if __name__ == '__main__':
     random.seed()
 
     count = 0
-    for _ in range(10):
+    for _ in range(int(democonfig['number_of_msg'])):
 
         name = choice(user_ids)
         creditcard = choice(products)
@@ -59,6 +60,7 @@ if __name__ == '__main__':
         }
         print(json.dumps(PII_PCI_data))
         producer.produce(topic, json.dumps(PII_PCI_data))
+        time.sleep(int(democonfig['sleep_ms'])/1000)
         count += 1
 
     # Block until the messages are sent.
