@@ -1,3 +1,14 @@
+terraform {
+  required_providers {
+    vault = {
+      source  = "hashicorp/vault"
+      version = "~> 4.8"
+    }
+  }
+
+  required_version = ">= 1.0.0"
+}
+
 provider "vault" {
   # address = var.vault_address
   skip_tls_verify = true
