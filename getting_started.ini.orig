@@ -6,6 +6,7 @@ sasl.mechanisms=PLAIN
 sasl.username=<your api key>
 sasl.password=<your api secrets>
 message.max.bytes=8388608
+enable.metrics.push=false
 
 [consumer]
 group.id=python_example_group_1
