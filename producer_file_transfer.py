@@ -38,7 +38,7 @@ if __name__ == '__main__':
     urllib3.disable_warnings()
 
     # create a client object and authenticate to the Vault server using a token
-    client = hvac.Client(url=os.environ['VAULT_ADDR'], token=os.environ['VAULT_TOKEN'], verify=False)
+    client = hvac.Client(url=os.environ['VAULT_ADDR'], token=os.environ['VAULT_TOKEN'], namespace=os.environ['VAULT_NAMESPACE'], verify=False)
 
     # Define the path of the directory that contains the source files
     source_dir = democonfig['sourcedir'] + "/"
