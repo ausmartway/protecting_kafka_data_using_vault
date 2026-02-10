@@ -200,3 +200,5 @@ destination/*
 #ini config which contains confluent api keys
 getting_started.ini
 
+# Vault Enterprise license file (sensitive)
+vault.hclic
