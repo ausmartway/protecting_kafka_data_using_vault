@@ -1,5 +1,14 @@
+# Docker Compose configuration for local Kafka + Vault demo
+# Version Policy:
+# - Kafka/Zookeeper 7.7.0: Stable, well-tested version (7.8.x available but not yet mature)
+# - Vault Enterprise 1.21-ent: Latest stable (Feb 2026)
+# - Kafka UI: latest (stable for demo use)
+# See VERSION_ANALYSIS.md for detailed version information
+
 services:
   zookeeper:
+    # Confluent Platform Zookeeper 7.7.0 (July 2024)
+    # Stable and well-tested for Kafka 7.7.x
     image: confluentinc/cp-zookeeper:7.7.0
     hostname: zookeeper
     container_name: zookeeper
@@ -15,6 +24,9 @@ services:
       - kafka-vault-network
 
   kafka:
+    # Confluent Platform Kafka 7.7.0 (July 2024)
+    # Stable production release, compatible with Zookeeper 7.7.x
+    # Note: 7.8.0 available but 7.7.0 is more mature for demo use
     image: confluentinc/cp-kafka:7.7.0
     hostname: kafka
     container_name: kafka
@@ -48,6 +60,10 @@ services:
       start_period: 20s
 
   vault:
+    # Vault Enterprise 1.21.3 (Feb 2026) - Latest stable version
+    # Includes Transform secrets engine for format-preserving encryption
+    # License valid until 2030-11-22
+    # Override with VAULT_IMAGE environment variable if needed
     image: ${VAULT_IMAGE:-hashicorp/vault-enterprise:1.21-ent}
     hostname: vault
     container_name: vault
@@ -75,6 +91,8 @@ services:
       start_period: 10s
 
   kafka-ui:
+    # Kafka UI - Web interface for Kafka topic inspection
+    # Latest tag is acceptable for demo use
     image: provectuslabs/kafka-ui:latest
     container_name: kafka-ui
     depends_on:
