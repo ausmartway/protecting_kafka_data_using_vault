@@ -1,0 +1,121 @@
+# Docker Compose configuration for local Kafka + Vault demo
+# Version Policy:
+# - Kafka/Zookeeper 7.7.0: Stable, well-tested version (7.8.x available but not yet mature)
+# - Vault Enterprise 1.21-ent: Latest stable (Feb 2026)
+# - Kafka UI: latest (stable for demo use)
+# See VERSION_ANALYSIS.md for detailed version information
+
+services:
+  zookeeper:
+    # Confluent Platform Zookeeper 7.7.0 (July 2024)
+    # Stable and well-tested for Kafka 7.7.x
+    image: confluentinc/cp-zookeeper:7.7.0
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    volumes:
+      - zookeeper-data:/var/lib/zookeeper/data
+      - zookeeper-logs:/var/lib/zookeeper/log
+    networks:
+      - kafka-vault-network
+
+  kafka:
+    # Confluent Platform Kafka 7.7.0 (July 2024)
+    # Stable production release, compatible with Zookeeper 7.7.x
+    # Note: 7.8.0 available but 7.7.0 is more mature for demo use
+    image: confluentinc/cp-kafka:7.7.0
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
+      KAFKA_LOG_RETENTION_HOURS: 2
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824
+      KAFKA_LOG_RETENTION_CHECK_INTERVAL_MS: 300000
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    networks:
+      - kafka-vault-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  vault:
+    # Vault Enterprise 1.21.3 (Feb 2026) - Latest stable version
+    # Includes Transform secrets engine for format-preserving encryption
+    # License valid until 2030-11-22
+    # Override with VAULT_IMAGE environment variable if needed
+    image: ${VAULT_IMAGE:-hashicorp/vault-enterprise:1.21-ent}
+    hostname: vault
+    container_name: vault
+    ports:
+      - "8200:8200"
+    environment:
+      VAULT_ADDR: http://localhost:8200
+      VAULT_API_ADDR: http://localhost:8200
+      VAULT_CLUSTER_ADDR: http://localhost:8201
+      VAULT_LICENSE_PATH: /vault/file/vault.hclic
+    cap_add:
+      - IPC_LOCK
+    volumes:
+      - vault-data:/vault/data
+      - ./vault.hclic:/vault/file/vault.hclic:ro
+      - ./scripts:/vault/scripts:ro
+    networks:
+      - kafka-vault-network
+    command: server -dev -dev-root-token-id="${VAULT_TOKEN:-dev-only-token}"
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  kafka-ui:
+    # Kafka UI - Web interface for Kafka topic inspection
+    # Latest tag is acceptable for demo use
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - kafka-vault-network
+
+networks:
+  kafka-vault-network:
+    driver: bridge
+
+volumes:
+  zookeeper-data:
+    driver: local
+  zookeeper-logs:
+    driver: local
+  kafka-data:
+    driver: local
+  vault-data:
+    driver: local
