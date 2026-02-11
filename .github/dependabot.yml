@@ -1,0 +1,54 @@
+version: 2
+updates:
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(docker)"
+      include: "scope"
+    ignore:
+      - dependency-name: "confluentinc/cp-kafka"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "confluentinc/cp-zookeeper"
+        update-types: ["version-update:semver-minor"]
+      - dependency-name: "hashicorp/vault-enterprise"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore(python)"
+      include: "scope"
+    ignore:
+      - dependency-name: "hvac"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "certifi"
+        update-types: ["version-update:semver-patch"]
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "security(docker)"
+      include: "scope"
+    allow: dependencies-only
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "security(python)"
+      include: "scope"
+    allow: dependencies-only
+    ignore:
+      - dependency-name: "hvac"
+        update-types: ["version-update:semver-major"]
